@@ -32,22 +32,12 @@ impl Blockchain {
 
     // Erhalte einen Block nach seinem Index
     pub fn get_block_by_index(&self, index: u32) -> Option<&Block> {
-        for block in self.blocks.iter() {
-            if block.index == index {
-                return Some(block);
-            }
-        }
-        None
+        self.blocks.iter().find(|&block| block.index == index)
     }
 
     // Erhalte einen Block nach seinem Hash
     pub fn get_block_by_hash(&self, hash: &str) -> Option<&Block> {
-        for block in self.blocks.iter() {
-            if block.hash == hash {
-                return Some(block);
-            }
-        }
-        None
+        self.blocks.iter().find(|&block| block.hash == hash)
     }
 
     // Speichere die Blockchain in eine Datei
@@ -69,11 +59,6 @@ impl Blockchain {
     // Funktion zur Abfrage aller Blöcke
     pub fn get_all_blocks(&self) -> Vec<&Block> {
         self.blocks.iter().collect()
-    }
-
-    // Funktion zur Abfrage der letzten N Blöcke
-    pub fn get_last_n_blocks(&self, n: usize) -> Vec<&Block> {
-        self.blocks.iter().collect::<Vec<_>>().into_iter().rev().take(n).collect()
     }
 
     // Funktion zur Abfrage der Transaktionen eines bestimmten Blocks

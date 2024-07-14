@@ -48,10 +48,13 @@ impl<'a, T> Iterator for LinkedListIterator<'a, T> {
 
     // Erhalte das nächste Element im Iterator
     fn next(&mut self) -> Option<Self::Item> {
-        self.next.map(|node| {
-            self.next = node.next.as_deref(); // Setze den Iterator auf den nächsten Knoten
-            &node.val // Gib den Wert des aktuellen Knotens zurück
-        })
+        match self.next {
+            Some(node) => {
+                self.next = node.next.as_deref(); // Setze den Iterator auf den nächsten Knoten
+                Some(&node.val) // Gib den Wert des aktuellen Knotens zurück
+            }
+            None => None, // Keine weiteren Knoten vorhanden
+        }
     }
 }
 

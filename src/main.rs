@@ -11,10 +11,10 @@ fn main() {
     // Beispielverwendung von `MResult` im Hauptprogramm
     let result: MResult<i32, &str> = MResult::ok(42);
 
-    if result.is_ok() {
-        println!("Result is Ok with value: {}", result.unwrap());
-    } else {
-        println!("Result is an Err");
+    // Überprüfe das Ergebnis und drucke entsprechend
+    match result {
+        MResult::Ok(value) => println!("Result is Ok with value: {}", value), // Ausgabe: "Result is Ok with value: 42"
+        MResult::Err(_) => println!("Result is an Err"), // Ausgabe, wenn result ein Fehler wäre
     }
 
     let mut blockchain = Blockchain::new(); // Erstelle eine neue Blockchain
@@ -22,20 +22,22 @@ fn main() {
     // Erstelle den Genesis-Block
     let genesis_transactions = vec![
         Transaction {
-            sender: String::from("0"),
-            receiver: String::from("Alice"),
-            amount: 50,
+            sender: String::from("0"), // Der Absender der Transaktion
+            receiver: String::from("Alice"), // Der Empfänger der Transaktion
+            amount: 50, // Der Betrag der Transaktion
         },
     ];
     let genesis_block = Block::new(
-        0,
-        String::from("0"),
-        1625244673,
-        genesis_transactions
+        0, // Der Index des Blocks
+        String::from("0"), // Der Hash des vorherigen Blocks (hier "0" für den Genesis-Block)
+        1625244673, // Der Zeitstempel des Blocks
+        genesis_transactions, // Die Transaktionen des Blocks
     );
 
-    if let Err(e) = blockchain.add_block(genesis_block) { // Füge den Genesis-Block hinzu
-        println!("Failed to add genesis block: {}", e);
+    // Versuche, den Genesis-Block zur Blockchain hinzuzufügen und drucke das Ergebnis
+    match blockchain.add_block(genesis_block) {
+        Ok(_) => println!("Genesis block added successfully"), // Ausgabe: "Genesis block added successfully"
+        Err(e) => println!("Failed to add genesis block: {}", e), // Ausgabe im Fehlerfall
     }
 
     // Erstelle den zweiten Block
@@ -46,68 +48,65 @@ fn main() {
             amount: 25,
         },
     ];
+    let previous_block_hash = blockchain.get_block_by_index(0).unwrap().hash.clone(); // Hole den Hash des Genesis-Blocks
     let second_block = Block::new(
-        1,
-        blockchain.blocks.head.as_ref().unwrap().val.hash.clone(), // Verwende den Hash des vorherigen Blocks
-        1625244674,
-        second_transactions
+        1, // Der Index des zweiten Blocks
+        previous_block_hash, // Der Hash des Genesis-Blocks als vorheriger Hash
+        1625244674, // Der Zeitstempel des zweiten Blocks
+        second_transactions, // Die Transaktionen des zweiten Blocks
     );
 
-    if let Err(e) = blockchain.add_block(second_block) { // Füge den zweiten Block hinzu
-        println!("Failed to add second block: {}", e);
+    // Versuche, den zweiten Block zur Blockchain hinzuzufügen und drucke das Ergebnis
+    match blockchain.add_block(second_block) {
+        Ok(_) => println!("Second block added successfully"), // Ausgabe: "Second block added successfully"
+        Err(e) => println!("Failed to add second block: {}", e), // Ausgabe im Fehlerfall
     }
 
-    // Abfrage aller Blöcke
+    // Abfrage aller Blöcke und deren Ausgabe
     let all_blocks = blockchain.get_all_blocks();
-    println!("All blocks in the blockchain:");
-    for block in &all_blocks {
-        println!("{}", block);
-    }
-
-    // Abfrage der letzten N Blöcke (z.B. die letzten 2 Blöcke)
-    let last_blocks = blockchain.get_last_n_blocks(2);
-    println!("Last 2 blocks in the blockchain:");
-    for block in &last_blocks {
-        println!("{}", block);
+    println!("All blocks in the blockchain:"); // Überschrift für die Liste aller Blöcke
+    for block in all_blocks.iter() {
+        println!("{}", block); // Ausgabe jedes Blocks in der Blockchain
     }
 
     // Abfrage der Transaktionen eines bestimmten Blocks (z.B. Genesis-Block)
-    if let Some(transactions) = blockchain.get_transactions_of_block(0) {
-        println!("Transactions in the Genesis block:");
-        for transaction in &transactions {
-            println!("{}", transaction);
+    match blockchain.get_transactions_of_block(0) {
+        Some(transactions) => {
+            println!("Transactions in the Genesis block:"); // Überschrift für die Transaktionen im Genesis-Block
+            for transaction in &transactions {
+                println!("{}", transaction); // Ausgabe jeder Transaktion im Genesis-Block
+            }
         }
-    } else {
-        println!("Genesis block not found");
+        None => println!("Genesis block not found"), // Ausgabe, wenn der Genesis-Block nicht gefunden wird
     }
 
     // Gib den Genesis-Block aus
     match blockchain.get_block_by_index(0) {
-        Some(block) => println!("{}", block),
-        None => println!("Block not found"),
+        Some(block) => println!("{}", block), // Ausgabe des Genesis-Blocks
+        None => println!("Block not found"), // Ausgabe, wenn der Genesis-Block nicht gefunden wird
     }
 
     // Gib den zweiten Block aus
     let second_block_hash = blockchain.get_block_by_index(1).unwrap().hash.clone();
-
     match blockchain.get_block_by_hash(&second_block_hash) {
-        Some(block) => println!("{}", block),
-        None => println!("Block not found"),
+        Some(block) => println!("{}", block), // Ausgabe des zweiten Blocks
+        None => println!("Block not found"), // Ausgabe, wenn der zweite Block nicht gefunden wird
     }
 
-    // Speichere die Blockchain in eine Datei
-    if let Err(e) = blockchain.save_to_file("blockchain.json") {
-        println!("Failed to save blockchain: {}", e);
+    // Speichere die Blockchain in eine Datei und drucke das Ergebnis
+    match blockchain.save_to_file("blockchain.json") {
+        Ok(_) => println!("Blockchain saved to file successfully"), // Ausgabe: "Blockchain saved to file successfully"
+        Err(e) => println!("Failed to save blockchain: {}", e), // Ausgabe im Fehlerfall
     }
 
-    // Lade die Blockchain aus der Datei
+    // Lade die Blockchain aus der Datei und drucke das Ergebnis
     match Blockchain::load_from_file("blockchain.json") {
         Ok(loaded_blockchain) => {
-            println!("Loaded blockchain from file:");
-            for block in loaded_blockchain.blocks.iter() {
-                println!("{}", block);
+            println!("Loaded blockchain from file:"); // Überschrift für die geladene Blockchain
+            for block in loaded_blockchain.get_all_blocks().iter() {
+                println!("{}", block); // Ausgabe jedes Blocks in der geladenen Blockchain
             }
-        },
-        Err(e) => println!("Failed to load blockchain: {}", e), // Hier das Semikolon durch ein Komma ersetzen
+        }
+        Err(e) => println!("Failed to load blockchain: {}", e), // Ausgabe im Fehlerfall
     }
 }
